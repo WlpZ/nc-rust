@@ -1,5 +1,6 @@
 #[cfg(not(target_os = "windows"))]
 use std::process::Command;
+
 use std::io::{self, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread;
@@ -19,7 +20,7 @@ fn handle_client(mut stream: TcpStream) -> io::Result<()> {
         let command = String::from_utf8_lossy(&buffer[..bytes_read]);
         #[cfg(target_os = "windows")]
         {
-            let output = match Command::new("cmd")
+            let output = match std::process::Command::new("cmd")
                 .arg("/C")
                 .arg(&command.to_string())
                 .output() {
@@ -69,6 +70,7 @@ fn main() -> io::Result<()> {
             .takes_value(true))
         .get_matches();
 
+    // 根据命令行参数执行相应的逻辑
     if let Some(local_port_str) = matches.value_of("local-port") {
         // 作为服务器模式运行
         let local_port: u16 = local_port_str.parse().expect("Invalid local port");
