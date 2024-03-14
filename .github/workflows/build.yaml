@@ -45,7 +45,7 @@ jobs:
           dir target\release  # 输出目录下的文件列表，检查是否存在 nc-rust.exe
           cd target\release
           dir  # 确认当前目录是否为 target\release
-          7z a nc-rust-windows.zip nc-rust.exe
+          7z a nc-rust-windows.zip target\release\nc-rust.exe
 
   release:
     needs: [build-linux, build-windows]
